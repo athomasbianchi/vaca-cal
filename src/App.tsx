@@ -6,7 +6,6 @@ import { Calendar } from "./features/calendar/Calendar"
 
 export const App = () => (
   <div className="App">
-    <header className="App-header">
       {/* <img src={logo} className="App-logo" alt="logo" /> */}
       <Calendar />
       {/* <Counter />
@@ -61,6 +60,5 @@ export const App = () => (
           Reselect
         </a>
       </span> */}
-    </header>
   </div>
 )
