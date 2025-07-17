@@ -1,24 +1,28 @@
 import type { JSX } from "react"
+import { useAppDispatch, useAppSelector } from "../../app/hooks"
+import {
+  selectMdates,
+} from "./calendarSlice"
 import dayjs from "dayjs"
 import dayOfYear from 'dayjs/plugin/dayOfYear' // ES 2015
 dayjs.extend(dayOfYear)
 
 // import { useState } from "react"
 
-const mHolidaysSet = new Set([
-  '01-01',
-  '01-20',
-  '02-17',
-  '05-26',
-  '06-19',
-  '07-04',
-  '09-01',
-  '10-13',
-  '11-11',
-  '11-27',
-  '11-28',
-  '12-25'
-]);
+// const mHolidaysSet = new Set([
+//   '01-01',
+//   '01-20',
+//   '02-17',
+//   '05-26',
+//   '06-19',
+//   '07-04',
+//   '09-01',
+//   '10-13',
+//   '11-11',
+//   '11-27',
+//   '11-28',
+//   '12-25'
+// ]);
 
 const tHolidaysSet = new Set([
   '01-01',
@@ -34,35 +38,35 @@ const tHolidaysSet = new Set([
   '12-31'
 ])
 
-const mLocked = new Set([
-  '03-27',
-  '03-28',
-  '06-20',
-  '06-30',
-  '07-01',
-  '07-02',
-  '07-03',
-  '07-17',
-  '07-18',
-  '07-31',
-  '08-01',
-  '08-13',
-  '08-14',
-  '08-15',
-  '08-21',
-  '08-22',
-  '12-24',
-])
+// const mLocked = new Set([
+//   '03-27',
+//   '03-28',
+//   '06-20',
+//   '06-30',
+//   '07-01',
+//   '07-02',
+//   '07-03',
+//   '07-17',
+//   '07-18',
+//   '07-31',
+//   '08-01',
+//   '08-13',
+//   '08-14',
+//   '08-15',
+//   '08-21',
+//   '08-22',  
+//   '12-24',
+// ])
 
-const mPenciled = new Set([
-  '09-19',
-  '10-10',
-  '11-10',
-  '12-26',
-  '12-29',
-  '12-30',
-  '12-31'
-])
+// const mPenciled = new Set([
+//   '09-19',
+//   '10-10',
+//   '11-10',
+//   '12-26',
+//   '12-29',
+//   '12-30',
+//   '12-31'
+// ])
 
 
 const tLocked = new Set([
@@ -93,14 +97,14 @@ const tPenciled = new Set([
   '11-11',
 ])
 
-const mVaca = new Set([...mLocked, ...mPenciled])
-
-const tVaca = new Set([...tLocked, ...tPenciled])
-
 const year = Array.from({ length: 365 }, (_, i) => i + 1).map(x => dayjs().dayOfYear(x))
 const today = dayjs()
 
 export const Calendar = (): JSX.Element => {
+  const dispatch = useAppDispatch()
+  const mCalendar = useAppSelector(selectMdates)
+  console.log(mCalendar)
+
   return (
     <>
       <div
@@ -124,11 +128,7 @@ export const Calendar = (): JSX.Element => {
             const day = date.day()
             const month = date.month()
             const mmdd_date = date.format('MM-DD')
-            const mHoliday: boolean = mHolidaysSet.has(mmdd_date)
-            const tHoliday: boolean = tHolidaysSet.has(mmdd_date)
-            const mLock: boolean = mLocked.has(mmdd_date)
-            const mPencil: boolean = mPenciled.has(mmdd_date)
-            const tLock: boolean = tLocked.has(mmdd_date)
+            const mDate = mCalendar[mmdd_date]
 
             return (
               <div
@@ -143,14 +143,15 @@ export const Calendar = (): JSX.Element => {
               >
                 <div>{date.format("MMM D")}</div>
                 <div>
-                  {mHoliday && "M🤶"}
+                  {/* {mHoliday && "M🤶"}
                   {mLock && "M🔒"}
-                  {mPencil && "M✏️"}
+                  {mPencil && "M✏️"} */}
+                  {mDate && mDate.type}
                 </div>
-                <div>
+                {/* <div>
                   {tHoliday && "T🎅"}
                   {tLock && "T🔒"}
-                </div>
+                </div> */}
               </div>)
           })}
         </div>
@@ -161,14 +162,9 @@ export const Calendar = (): JSX.Element => {
             height: '100vh',
           }}
         >
-          hi
-          <div>M: {mVaca.size}</div>
-          <div>🔒{mLocked.size} ✏️{mPenciled.size}</div>
-          <div>T: {tVaca.size}</div>
-          <div>🔒{tLocked.size} ✏️{tPenciled.size}</div>
-          M Total: {calculateMPTO(mPenciled, mLocked).totalCount}
+          {/* M Total: {calculateMPTO(mPenciled, mLocked).totalCount}
           M locked: {calculateMPTO(mPenciled, mLocked).lockedCount}
-          M penciled: {calculateMPTO(mPenciled, mLocked).penciledCount}
+          M penciled: {calculateMPTO(mPenciled, mLocked).penciledCount} */}
         </div>
 
       </div>
