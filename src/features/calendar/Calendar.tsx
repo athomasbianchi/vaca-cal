@@ -7,23 +7,6 @@ import dayjs from "dayjs"
 import dayOfYear from 'dayjs/plugin/dayOfYear' // ES 2015
 dayjs.extend(dayOfYear)
 
-// import { useState } from "react"
-
-// const mHolidaysSet = new Set([
-//   '01-01',
-//   '01-20',
-//   '02-17',
-//   '05-26',
-//   '06-19',
-//   '07-04',
-//   '09-01',
-//   '10-13',
-//   '11-11',
-//   '11-27',
-//   '11-28',
-//   '12-25'
-// ]);
-
 const tHolidaysSet = new Set([
   '01-01',
   '05-26',
@@ -37,36 +20,6 @@ const tHolidaysSet = new Set([
   '12-30',
   '12-31'
 ])
-
-// const mLocked = new Set([
-//   '03-27',
-//   '03-28',
-//   '06-20',
-//   '06-30',
-//   '07-01',
-//   '07-02',
-//   '07-03',
-//   '07-17',
-//   '07-18',
-//   '07-31',
-//   '08-01',
-//   '08-13',
-//   '08-14',
-//   '08-15',
-//   '08-21',
-//   '08-22',  
-//   '12-24',
-// ])
-
-// const mPenciled = new Set([
-//   '09-19',
-//   '10-10',
-//   '11-10',
-//   '12-26',
-//   '12-29',
-//   '12-30',
-//   '12-31'
-// ])
 
 
 const tLocked = new Set([
@@ -102,8 +55,6 @@ const today = dayjs()
 
 export const Calendar = (): JSX.Element => {
   const dispatch = useAppDispatch()
-  const mCalendar = useAppSelector(selectMdates)
-  console.log(mCalendar)
 
   return (
     <>
@@ -128,7 +79,6 @@ export const Calendar = (): JSX.Element => {
             const day = date.day()
             const month = date.month()
             const mmdd_date = date.format('MM-DD')
-            const mDate = mCalendar[mmdd_date]
 
             return (
               <div
@@ -140,14 +90,12 @@ export const Calendar = (): JSX.Element => {
                   color: day === 0 || day === 6 ? "red" : '',
                   border: today.isSame(date, 'day') ? "black 5px solid" : 'black 1px solid',
                 }}
+                onClick={
+                  () => {console.log(mmdd_date)}
+                }
               >
                 <div>{date.format("MMM D")}</div>
-                <div>
-                  {/* {mHoliday && "M🤶"}
-                  {mLock && "M🔒"}
-                  {mPencil && "M✏️"} */}
-                  {mDate && mDate.type}
-                </div>
+                <MarcySwatch date={mmdd_date} />
                 {/* <div>
                   {tHoliday && "T🎅"}
                   {tLock && "T🔒"}
@@ -162,9 +110,7 @@ export const Calendar = (): JSX.Element => {
             height: '100vh',
           }}
         >
-          {/* M Total: {calculateMPTO(mPenciled, mLocked).totalCount}
-          M locked: {calculateMPTO(mPenciled, mLocked).lockedCount}
-          M penciled: {calculateMPTO(mPenciled, mLocked).penciledCount} */}
+          <Data />
         </div>
 
       </div>
@@ -174,30 +120,64 @@ export const Calendar = (): JSX.Element => {
 
 }
 
-const calculateMPTO = (penciled: Set<string>, locked: Set<string>) => {
+const Data = (): JSX.Element => {
+  const mCalendar = useAppSelector(selectMdates)
+  const totals = calculateMPTO(mCalendar)
+
+  return (
+    <>
+    <div>
+      M PTO Total : 22
+    </div>
+    <div>
+      M PTO Used : {totals.totalCount}
+    </div>
+    <div>
+      M PTO Remaining : {22 - totals.totalCount}
+    </div>
+    </>
+  )
+}
+
+const MarcySwatch = ({ date }): JSX.Element => {
+  const mCalendar = useAppSelector(selectMdates)
+  const data = mCalendar[date]
+  const type = data?.type
+
+
+  return (
+    <div>
+      {type === 'holiday' && "M🤶"}
+      {type === 'locked' && "M🔒"}
+      {type === 'penciled' && "M✏️"}
+    </div>
+  )
+}
+
+const calculateMPTO = (dates: Object) => {
 
   let penciledCount = 0;
   let lockedCount = 0;
 
-  for (const date of penciled) {
+  for (const date in dates) {
+    const { type } = dates[date]
     const datejs = dayjs(`${date}-25`, 'MM-DD-YY')
     const dayNum = datejs.day()
     if (dayNum === 4 || dayNum === 5) {
-      penciledCount += .5
+      if (type === 'penciled') {
+        penciledCount += 0.5
+      }
+      if (type === 'locked') {
+        lockedCount += 0.5
+      }
     }
     else {
-      penciledCount += 1
-    } 
-  }
-
-  for (const date of locked) {
-    const datejs = dayjs(`${date}-25`, 'MM-DD-YY')
-    const dayNum = datejs.day()
-    if (dayNum === 4 || dayNum === 5) {
-      lockedCount += .5
-    }
-    else {
-      lockedCount += 1
+      if (type === 'penciled') {
+        penciledCount += 1
+      }
+      if (type === 'locked') {
+        lockedCount += 1  
+      }
     } 
   }
 
