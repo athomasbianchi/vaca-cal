@@ -305,8 +305,10 @@ export const calendarSlice = createSlice({
   reducers: create => ({
     updateDate: create.reducer(
       (state, action) => {
-        const { date, value } = action.payload
-        state.mDates[date] = { id: date, type: value}
+        const { date, mValue, tValue } = action.payload
+        state.mDates[date] = { id: date, type: mValue}
+        state.tDates[date] = { id: date, type: tValue}
+
       },
     ),
   }),

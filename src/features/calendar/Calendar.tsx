@@ -100,8 +100,6 @@ const Data = (): JSX.Element => {
   const totals = calculateMPTO(mCalendar)
   const ttotals = calculateTPTO(tCalendar, tStartingDays, tMonthlyAccrual);
 
-  console.log(ttotals)
-
   return (
     <>
       <div>
@@ -173,19 +171,28 @@ const TommySwatch = ({ date }): JSX.Element => {
 
 const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
   const mCalendar = useAppSelector(selectMdates)
+  const tCalendar = useAppSelector(selectTDates)
   const dispatch = useAppDispatch()
   const mDate = mCalendar[selectedDay]
-  const mType = mDate?.type
+  const tDate = tCalendar[selectedDay]
+  const mType = mDate?.type || 'work'
+  const tType = tDate?.type || 'work'
   const [mDay, setMday] = useState(mType)
+  const [tDay, setTday] = useState(tType)
   
-  const handleChange = (e) => {
+  const handleMChange = (e) => {
     setMday(e.target.value)
+  }
+
+  const handleTChange = (e) => {
+    setTday(e.target.value)
   }
 
   const handleSubmit = () => {
     dispatch(updateDate({
       date: selectedDay,
-      value: mDay
+      mValue: mDay,
+      tValue: tDay,
     }));
     handleClick(null);
   }
@@ -208,17 +215,23 @@ const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
           style={{
             height: '200px',
             width: '200px',
-            backgroundColor: 'green'
+            backgroundColor: 'green',
+            fontSize: '20px'
           }}
         >
           <div>{selectedDay}</div>
           <div>Marissa</div>
-          <select value={mDay} onChange={handleChange} >
+          <select value={mDay} onChange={handleMChange} >
             <option value="penciled">M✏️</option>
             <option value="locked">M🔒</option>
             <option value="work">M🧑‍💼</option>
           </select>
-          <div>T </div>
+          <div>Tom </div>
+          <select value={tDay} onChange={handleTChange} >
+            <option value="penciled">T✏️</option>
+            <option value="locked">T🔒</option>
+            <option value="work">T🧑‍💼</option>
+          </select>
           <div
             onClick={() => handleSubmit()}
           >Submit</div>
