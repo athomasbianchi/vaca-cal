@@ -113,6 +113,23 @@ const Data = (): JSX.Element => {
       <div>
         M PTO Remaining : {22 - totals.totalCount}
       </div>
+
+      <div>
+        {
+          months.filter(
+            x => Number(x) > today.month()
+          ).map(month => {
+            return (
+              <div>
+                <span>{dayjs().set('month', Number(month)-1).format('MMM')} </span>
+                <span> taken: {ttotals[month].totalTaken}</span>
+                <span> accrued: {ttotals[month].accrual}</span>
+                <span> remaining: {ttotals[month].accrual - ttotals[month].totalTaken}</span>
+              </div>
+            )
+          })
+        }
+      </div>
     </>
   )
 }
@@ -197,9 +214,9 @@ const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
           <div>{selectedDay}</div>
           <div>Marissa</div>
           <select value={mDay} onChange={handleChange} >
-            <option value="work">M🧑‍💼</option>
-            <option value="locked">M🔒</option>
             <option value="penciled">M✏️</option>
+            <option value="locked">M🔒</option>
+            <option value="work">M🧑‍💼</option>
           </select>
           <div>T </div>
           <div
