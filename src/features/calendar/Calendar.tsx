@@ -8,8 +8,9 @@ import {
   selectTMonthlyAccrual,
   selectTStartingDays,
 } from "./calendarSlice"
-import dayjs from "dayjs"
+import dayjs, { Dayjs } from "dayjs"
 import dayOfYear from 'dayjs/plugin/dayOfYear' // ES 2015
+import { O } from "vitest/dist/chunks/reporters.d.C-cu31ET.js"
 dayjs.extend(dayOfYear)
 
 const year = Array.from({ length: 365 }, (_, i) => i + 1).map(x => dayjs().dayOfYear(x));
@@ -18,7 +19,7 @@ const today = dayjs();
 const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
 export const Calendar = (): JSX.Element => {
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const handleDayClick = (date: string) => {
     setSelectedDay(date);
@@ -28,53 +29,18 @@ export const Calendar = (): JSX.Element => {
   return (
     <>
       <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          height: '100vh',
-          overflow: 'auto',
-        }}
+        className="flex w-full h-screen"
       >
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7)",
-            width: '50%',
-            overflowY: 'scroll'
-          }}
+          className="grid w-[50%] grid-cols-7 overflow-y-scroll"
         >
           <DateDetail
             selectedDay={selectedDay}
             handleClick={handleDayClick}
           />
-          {year.map(date => {
-            const day = date.day()
-            const month = date.month()
-            const mmdd_date = date.format('MM-DD')
-
-            return (
-              <div
-                key={mmdd_date}
-                style={{
-                  minHeight: "7vw",
-                  gridColumn: day + 1,
-                  backgroundColor: month % 2 ? '#e3e2e2' : 'white',
-                  color: day === 0 || day === 6 ? "red" : '',
-                  border: today.isSame(date, 'day') ? "black 5px solid" : 'black 1px solid',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-                onClick={() => handleDayClick(mmdd_date)}
-              >
-                <div
-                  style={{
-                    minHeight: '33%'
-                  }}
-                >{date.format("MMM D")}</div>
-                <MarcySwatch date={mmdd_date} />
-                <TommySwatch date={mmdd_date} />
-              </div>)
-          })}
+          {year.map(date => 
+            <CalendarDate date={date} key={date.dayOfYear()}/>
+          )}
         </div>
         <div
           style={{
@@ -92,6 +58,32 @@ export const Calendar = (): JSX.Element => {
 
 }
 
+const CalendarDate = ({ date, handleDayClick }: { date: Dayjs, handleDayClick: (date: string) => void }): JSX.Element => {
+  const day = date.day()
+  const month = date.month()
+  const mmdd_date = date.format('MM-DD')
+
+  return (
+    <div
+      key={mmdd_date}
+      style={{
+        gridColumn: day + 1,
+        backgroundColor: month % 2 ? '#e3e2e2' : 'white',
+        color: day === 0 || day === 6 ? "red" : '',
+        border: today.isSame(date, 'day') ? "black 5px solid" : 'black 1px solid',
+      }}
+      className="min-h-[7vw] flex flex-col items-center justify-center"
+      onClick={() => { handleDayClick(mmdd_date) }}
+    >
+      <div
+        className="min-h-[33%]"
+      >{date.format("MMM D")}</div>
+        <MarcySwatch date={mmdd_date} />
+        <TommySwatch date={mmdd_date} />
+    </div>
+  )
+}
+
 const Data = (): JSX.Element => {
   const mCalendar = useAppSelector(selectMdates)
   const tCalendar = useAppSelector(selectTDates)
@@ -102,7 +94,8 @@ const Data = (): JSX.Element => {
 
   return (
     <>
-      <div>
+      <div
+      >
         M PTO Total : 22
       </div>
       <div>
@@ -119,7 +112,7 @@ const Data = (): JSX.Element => {
           ).map(month => {
             return (
               <div>
-                <span>{dayjs().set('month', Number(month)-1).format('MMM')} </span>
+                <span>{dayjs().set('month', Number(month) - 1).format('MMM')} </span>
                 <span> taken: {ttotals[month].totalTaken}</span>
                 <span> accrued: {ttotals[month].accrual}</span>
                 <span> remaining: {ttotals[month].accrual - ttotals[month].totalTaken}</span>
@@ -169,7 +162,7 @@ const TommySwatch = ({ date }): JSX.Element => {
   )
 }
 
-const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
+const DateDetail = ({ selectedDay, handleClick }): JSX.Element => {
   const mCalendar = useAppSelector(selectMdates)
   const tCalendar = useAppSelector(selectTDates)
   const dispatch = useAppDispatch()
@@ -179,7 +172,7 @@ const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
   const tType = tDate?.type || 'work'
   const [mDay, setMday] = useState(mType)
   const [tDay, setTday] = useState(tType)
-  
+
   const handleMChange = (e) => {
     setMday(e.target.value)
   }
@@ -238,7 +231,7 @@ const DateDetail = ({ selectedDay, handleClick }) : JSX.Element => {
           <div
             onClick={() => handleClick(null)}
           >close</div>
-          
+
         </div>
       </div>
     )
@@ -267,9 +260,9 @@ const calculateMPTO = (dates: Object) => {
         penciledCount += 1
       }
       if (type === 'locked') {
-        lockedCount += 1  
+        lockedCount += 1
       }
-    } 
+    }
   }
 
   return {
@@ -279,16 +272,24 @@ const calculateMPTO = (dates: Object) => {
   }
 }
 
-const calculateTPTO = (dates: Object, tStartingDays: number, tMonthlyAccrual: number) => {
-  const monthly = {}
+type monthlyObject = Record<string, {
+  accrual: number,
+  taken?: number,
+  totalTaken?: number
+}>
+
+const calculateTPTO = (dates: object, tStartingDays: number, tMonthlyAccrual: number) => {
+  const monthly: monthlyObject = {}
 
   months.forEach((month: string, i: number) => {
-    monthly[month] = {accrual: (i) * tMonthlyAccrual + tStartingDays}
+    monthly[month] = {
+      accrual: (i) * tMonthlyAccrual + tStartingDays,
+    }
   });
 
   for (const date in dates) {
     if (dates[date].type === 'locked' || dates[date].type === 'penciled') {
-      const month = date.substring(0,2)
+      const month = date.substring(0, 2)
       if (!monthly[month].taken) monthly[month].taken = 1
       else monthly[month].taken = monthly[month].taken + 1
     }
@@ -296,7 +297,7 @@ const calculateTPTO = (dates: Object, tStartingDays: number, tMonthlyAccrual: nu
 
   let totalTaken = 0;
   months.forEach(month => {
-    totalTaken = totalTaken + (monthly[month].taken || 0)
+    totalTaken = totalTaken + (monthly[month].taken ?? 0)
     monthly[month].totalTaken = totalTaken
   });
 
